@@ -22,7 +22,12 @@ for server in $SWARM_MEMBERS; do
   fi
 done
 
-SERVERS="['$(docker-machine ip $(docker-machine ls | grep swarm | awk '{print $1}' ) | xargs | sed -e "s/ /:8080','/g"):8080']"
+if [ $AWS_ACCESS_KEY ]; then
+  SERVERS="['$(docker-machine ls | grep swarm | awk '{print $1}' | xargs -I{} docker-machine inspect --format '{{.Driver.PrivateIPAddress}}' {} | xargs | sed -e "s/ /:8080','/g"):8080']"
+else
+  SERVERS="['$(docker-machine ip $(docker-machine ls | grep swarm | awk '{print $1}' ) | xargs | sed -e "s/ /:8080','/g"):8080']"
+fi
+
 # Sed the servers to the config file
 sed -i '' 's/- targets.*/- targets: '$SERVERS'/g' prometheus.yml
 
@@ -33,9 +38,18 @@ if [ $? -eq 0 ]; then
   # With alert manager it would be like:
   # docker run -d -p 9093:9093 -v $PWD/alertmanager.conf:/alertmanager.conf prom/alertmanager -config.file=/alertmanager.conf
   # docker $(docker-machine config infra) run -d -p 9090:9090 --name prometheus -v $PWD/prometheus.yml:/etc/prometheus/prometheus.yml -v $PWD/alert.rules:/etc/prometheus/alert.rules prom/prometheus -config.file=/etc/prometheus/prometheus.yml -alertmanager.url=http://$(docker-machine ip infra):9093
-  docker $(docker-machine config infra) run -d -p 9090:9090 --name prometheus -v $PWD/prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus -config.file=/etc/prometheus/prometheus.yml
+  if [ $AWS_ACCESS_KEY ]; then
+    # Copy the configuration file over
+    docker-machine scp $PWD/prometheus.yml infra:/tmp/prometheus.yml
+    docker $(docker-machine config infra) run -d -p 9090:9090 --name prometheus -v /tmp/prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus
+  else
+    docker $(docker-machine config infra) run -d -p 9090:9090 --name prometheus -v $PWD/prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus
+  fi
 else
   echo "** Prometheus already running on infra, sending sighup to reload config **"
+  if [ $AWS_ACCESS_KEY ]; then
+    docker-machine scp $PWD/prometheus.yml infra:/tmp/prometheus.yml
+  fi
   docker $(docker-machine config infra) exec prometheus kill -SIGHUP 1
 fi
 echo "Prometheus ui can be found at http://$(docker-machine ip infra):9090"
