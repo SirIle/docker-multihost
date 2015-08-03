@@ -26,9 +26,9 @@ then
   NAME='swarm-master'
   # Check that the machine doesn't already exist
   checkExisting $NAME
-  if [ $AWS_ACCESS_KEY ]; then
+  if [ $AWS_ACCESS_KEY_ID ]; then
     echo "** Creating swarm master with the name '$NAME' to AWS **"
-    docker-machine -D create --driver amazonec2 --amazonec2-access-key $AWS_ACCESS_KEY --amazonec2-secret-key $AWS_SECRET_KEY --amazonec2-vpc-id $AWS_VPC_ID --amazonec2-region $AWS_REGION --amazonec2-zone $AWS_ZONE --swarm --swarm-master --swarm-discovery consul://$LOCAL_INFRA_IP:8500 swarm-master
+    docker-machine -D create --driver amazonec2 --swarm --swarm-master --swarm-discovery consul://$LOCAL_INFRA_IP:8500 swarm-master
   else
     echo "** Creating swarm master with the name '$NAME' locally **"
     docker-machine create -d virtualbox --swarm --swarm-master --swarm-discovery consul://$EXTERNAL_INFRA_IP:8500 swarm-master
@@ -41,22 +41,22 @@ else
   fi
   NAME='swarm-app-'$1
   checkExisting $NAME
-  if [ $AWS_ACCESS_KEY ]; then
+  if [ $AWS_ACCESS_KEY_ID ]; then
     echo "** Creating swarm node with the name '$NAME' to AWS **"
-    docker-machine -D create --driver amazonec2 --amazonec2-access-key $AWS_ACCESS_KEY --amazonec2-secret-key $AWS_SECRET_KEY --amazonec2-vpc-id $AWS_VPC_ID --amazonec2-region $AWS_REGION --amazonec2-zone $AWS_ZONE --swarm --swarm-discovery consul://$LOCAL_INFRA_IP:8500 $NAME
+    docker-machine -D create --driver amazonec2 --swarm --swarm-discovery consul://$LOCAL_INFRA_IP:8500 $NAME
   else
     echo "** Creating swarm node with the name '$NAME' locally **"
     docker-machine create -d virtualbox --swarm --swarm-discovery consul://$EXTERNAL_INFRA_IP:8500 $NAME
   fi
 fi
 echo "** Starting consul and joining it to the infra node **"
-if [ $AWS_ACCESS_KEY ]; then
+if [ $AWS_ACCESS_KEY_ID ]; then
   docker $(docker-machine config $NAME) run -d -p 172.17.42.1:53:53 -p 172.17.42.1:53:53/udp -p 8301:8301 -p 8301:8301/udp -p 8500:8500 --name consul progrium/consul -join $LOCAL_INFRA_IP -advertise $(docker-machine inspect --format '{{.Driver.PrivateIPAddress}}' $NAME)
 else
   docker $(docker-machine config $NAME) run -d -p 172.17.42.1:53:53 -p 172.17.42.1:53:53/udp -p 8301:8301 -p 8301:8301/udp -p 8500:8500 --name consul progrium/consul -join $EXTERNAL_INFRA_IP -advertise $(docker-machine ip $NAME)
 fi
 echo "** Starting registrator ** "
-if [ $AWS_ACCESS_KEY ]; then
+if [ $AWS_ACCESS_KEY_ID ]; then
   docker $(docker-machine config $NAME) run -d -v /var/run/docker.sock:/tmp/docker.sock -h registrator --name registrator gliderlabs/registrator consul://$(docker-machine inspect --format '{{.Driver.PrivateIPAddress}}' $NAME):8500
 else
   docker $(docker-machine config $NAME) run -d -v /var/run/docker.sock:/tmp/docker.sock -h registrator --name registrator gliderlabs/registrator consul://$(docker-machine ip $NAME):8500

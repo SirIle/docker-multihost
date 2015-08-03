@@ -6,7 +6,7 @@ eval $(docker-machine env --swarm swarm-master)
 HAPROXY=$(docker ps | awk '{print $1,$2}' | grep haproxy | wc -l)
 if [[ $HAPROXY -lt 1 ]]; then
   echo "** At least one instance of HAProxy needs to be running, starting **"
-  if [ $AWS_ACCESS_KEY ]; then
+  if [ $AWS_ACCESS_KEY_ID ]; then
     docker run -d -h rest --name=rest -e SERVICE_NAME=rest --dns 172.17.42.1 -p 80:80 -p 1936:1936 sirile/haproxy -consul=$(docker-machine inspect --format '{{.Driver.PrivateIPAddress}}' infra):8500
   else
     docker run -d -h rest --name=rest -e SERVICE_NAME=rest --dns 172.17.42.1 -p 80:80 -p 1936:1936 sirile/haproxy -consul=$(docker-machine ip infra):8500
