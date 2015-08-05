@@ -28,7 +28,7 @@ then
   checkExisting $NAME
   if [ $AWS_ACCESS_KEY_ID ]; then
     echo "** Creating swarm master with the name '$NAME' to AWS **"
-    docker-machine -D create --driver amazonec2 --swarm --swarm-master --swarm-discovery consul://$LOCAL_INFRA_IP:8500 swarm-master
+    docker-machine create --driver amazonec2 --swarm --swarm-master --swarm-discovery consul://$LOCAL_INFRA_IP:8500 swarm-master
   else
     echo "** Creating swarm master with the name '$NAME' locally **"
     docker-machine create -d virtualbox --swarm --swarm-master --swarm-discovery consul://$EXTERNAL_INFRA_IP:8500 swarm-master
@@ -43,7 +43,7 @@ else
   checkExisting $NAME
   if [ $AWS_ACCESS_KEY_ID ]; then
     echo "** Creating swarm node with the name '$NAME' to AWS **"
-    docker-machine -D create --driver amazonec2 --swarm --swarm-discovery consul://$LOCAL_INFRA_IP:8500 $NAME
+    docker-machine create --driver amazonec2 --swarm --swarm-discovery consul://$LOCAL_INFRA_IP:8500 $NAME
   else
     echo "** Creating swarm node with the name '$NAME' locally **"
     docker-machine create -d virtualbox --swarm --swarm-discovery consul://$EXTERNAL_INFRA_IP:8500 $NAME

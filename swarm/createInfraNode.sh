@@ -8,7 +8,7 @@ if [[ $? -ne 0 ]] ; then
   # Check if Amazon keys are in the variables and if they are, create to AWS
   if [ $AWS_ACCESS_KEY_ID ]; then
     echo "** Creating infra node into AWS **"
-    docker-machine -D create -d amazonec2 infra
+    docker-machine create -d amazonec2 infra
   else
     echo "** Creating infra node locally **"
     docker-machine create -d virtualbox infra
