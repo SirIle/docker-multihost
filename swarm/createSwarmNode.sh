@@ -61,5 +61,5 @@ else
   docker $(docker-machine config $NAME) run -d -p 172.17.42.1:53:53 -p 172.17.42.1:53:53/udp -p 8301:8301 -p 8301:8301/udp -p 8500:8500 --name consul progrium/consul -join $EXTERNAL_INFRA_IP -advertise $NODE_IP
 fi
 echo "** Starting registrator ** "
-docker $(docker-machine config $NAME) run -d -v /var/run/docker.sock:/tmp/docker.sock -h registrator --name registrator gliderlabs/registrator consul://$NODE_IP:8500
+docker $(docker-machine config $NAME) run -d -v /var/run/docker.sock:/tmp/docker.sock -h registrator --name registrator gliderlabs/registrator -ip $NODE_IP consul://$NODE_IP:8500 
 echo "** Started a new node with IP $(docker-machine ip $NAME) **"
