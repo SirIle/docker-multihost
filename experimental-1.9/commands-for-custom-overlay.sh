@@ -36,3 +36,5 @@ docker-1.9 run -d -v /var/run/docker.sock:/tmp/docker.sock -h registrator --name
 
 # Start example service
 docker-1.9 run -d -e SERVICE_NAME=hello/v1 -e SERVICE_TAGS=rest -h hello1 --name hello1 sirile/scala-boot-test
+
+unset VIRTUALBOX_BOOT2DOCKER_URL
