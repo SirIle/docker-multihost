@@ -1,6 +1,6 @@
 # export VIRTUALBOX_BOOT2DOCKER_URL=http://sirile.github.io/files/boot2docker-1.9.iso
 
-# Download and cache the experimental version of Bootstrap
+# Download and cache the experimental version of boot2docker
 curl -L http://sirile.github.io/files/boot2docker-1.9.iso > $HOME/.docker/machine/cache/boot2docker-1.9.iso
 export VIRTUALBOX_BOOT2DOCKER_URL=file://$HOME/.docker/machine/cache/boot2docker-1.9.iso
 
