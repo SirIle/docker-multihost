@@ -1,5 +1,11 @@
+# export VIRTUALBOX_BOOT2DOCKER_URL=http://sirile.github.io/files/boot2docker-1.9.iso
+
+# Download and cache the experimental version of Bootstrap
+curl -L http://sirile.github.io/files/boot2docker-1.9.iso > $HOME/.docker/machine/cache/boot2docker-1.9.iso
+export VIRTUALBOX_BOOT2DOCKER_URL=file://$HOME/.docker/machine/cache/boot2docker-1.9.iso
+
 # Create the infra node
-docker-machine create -d virtualbox --virtualbox-boot2docker-url=http://sirile.github.io/files/boot2docker-1.9.iso infra
+docker-machine create -d virtualbox infra
 
 # Start Consul
 docker-1.9 $(docker-machine config infra) run -d -p 8500:8500 progrium/consul -server -bootstrap-expect 1
@@ -7,7 +13,7 @@ docker-1.9 $(docker-machine config infra) run -d -p 8500:8500 progrium/consul -s
 # Or use the docker-compose script
 
 # Create frontend node
-docker-machine create -d virtualbox --virtualbox-boot2docker-url=http://sirile.github.io/files/boot2docker-1.9.iso --engine-opt="default-network=overlay:multihost" --engine-opt="kv-store=consul:$(docker-machine ip infra):8500" --engine-label="com.docker.network.driver.overlay.bind_interface=eth1" frontend
+docker-machine create -d virtualbox --engine-opt="default-network=overlay:multihost" --engine-opt="kv-store=consul:$(docker-machine ip infra):8500" --engine-label="com.docker.network.driver.overlay.bind_interface=eth1" frontend
 
 # Is there a need to start consul also on frontend? How to register rest address?
 
@@ -21,7 +27,7 @@ docker-1.9 $(docker-machine config frontend) run -d --name=rest -p 80:80 -p 1936
 # docker run --dns 172.17.42.1 --rm sirile/haproxy -consul=consul.service.consul:8500 -dry -once
 
 # Create application node
-docker-machine create -d virtualbox --virtualbox-boot2docker-url=http://sirile.github.io/files/boot2docker-1.9.iso --engine-opt="default-network=overlay:multihost" --engine-opt="kv-store=consul:$(docker-machine ip infra):8500" --engine-label="com.docker.network.driver.overlay.bind_interface=eth1" --engine-label="com.docker.network.driver.overlay.neighbor_ip=$(docker-machine ip frontend)" application
+docker-machine create -d virtualbox --engine-opt="default-network=overlay:multihost" --engine-opt="kv-store=consul:$(docker-machine ip infra):8500" --engine-label="com.docker.network.driver.overlay.bind_interface=eth1" --engine-label="com.docker.network.driver.overlay.neighbor_ip=$(docker-machine ip frontend)" application
 
 # Start consul and join infra consul
 
@@ -30,3 +36,5 @@ docker-1.9 run -d -v /var/run/docker.sock:/tmp/docker.sock -h registrator --name
 
 # Start example service
 docker-1.9 run -d -e SERVICE_NAME=hello/v1 -e SERVICE_TAGS=rest -h hello1 --name hello1 sirile/scala-boot-test
+
+unset VIRTUALBOX_BOOT2DOCKER_URL
