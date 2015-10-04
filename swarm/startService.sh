@@ -14,5 +14,4 @@ if [[ $HAPROXY -lt 1 ]]; then
 fi
 echo "** Starting image $2 with the name $1 **"
 docker run -d -e SERVICE_NAME=$1 -e SERVICE_TAGS=rest --dns 172.17.42.1 -p :80 $2
-REST_ADDR=$(docker inspect $(docker ps -f name=rest -q) | grep IP\" | cut -d '"' -f 4)
-echo "** Service available at http://$REST_ADDR/$1 **"
+echo "** Service available at http://$(docker inspect --format='{{.Node.IP}}' rest)/$1 **"

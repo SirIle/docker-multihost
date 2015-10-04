@@ -12,7 +12,7 @@ function cleardock() {
 
 # Return public IP of a running container
 function dockip() {
-  docker inspect $(docker ps -f name=$@ -q) | grep IP\" | cut -d '"' -f 4
+  docker inspect --format='{{.Node.IP}}' $@
 }
 
 # Kill all running instances of given image with partial match
