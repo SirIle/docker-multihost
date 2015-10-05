@@ -51,3 +51,12 @@ docker run -d --name=rest -p 80:80 -p 1936:1936 sirile/haproxy -consul=consul:85
 
 # Start example services, repeat this a few times
 docker run -d -e SERVICE_NAME=test -e SERVICE_TAGS=rest --dns 172.17.42.1 -p :80 sirile/node-image-test
+
+# For testing Cassandra
+docker $(docker-machine config infra) pull sirile/minicassandra
+docker $(docker-machine config infra) tag sirile/minicassandra $(docker-machine ip infra):5000/cass
+docker $(docker-machine config infra) push $(docker-machine ip infra):5000/cass
+
+docker run -d --name cass1 192.168.99.100:5000/cass cass1
+docker run -d --name cass2 192.168.99.100:5000/cass cass1
+docker run -d --name cass3 192.168.99.100:5000/cass cass1
