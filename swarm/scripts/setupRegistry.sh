@@ -36,8 +36,8 @@ docker pull swarm:latest
 docker tag swarm:latest $REGISTRY_IP/swarm
 docker push $REGISTRY_IP/swarm
 printf "\e[33m*** \e[32mFetching registrator image \e[33m***\e[0m\n"
-docker pull gliderlabs/registrator
-docker tag gliderlabs/registrator $REGISTRY_IP/registrator
+docker pull kidibox/registrator
+docker tag kidibox/registrator $REGISTRY_IP/registrator
 docker push $REGISTRY_IP/registrator
 printf "\e[33m*** \e[32mFetching haproxy image to private registry \e[33m***\e[0m\n"
 docker pull sirile/haproxy
@@ -63,11 +63,3 @@ printf "\e[33m*** \e[32mFetching cadvisor image to private registry \e[33m***\e[
 docker pull google/cadvisor:latest
 docker tag google/cadvisor:latest $REGISTRY_IP/cadvisor
 docker push $REGISTRY_IP/cadvisor
-printf "\e[33m*** \e[32mFetching test image to private registry \e[33m***\e[0m\n"
-docker pull sirile/node-image-test
-docker tag sirile/node-image-test $REGISTRY_IP/node-image-test
-docker push $REGISTRY_IP/node-image-test
-printf "\e[33m*** \e[32mFetching Cassandra image to private registry \e[33m***\e[0m\n"
-docker pull sirile/minicassandra
-docker tag sirile/minicassandra $REGISTRY_IP/cassandra
-docker push $REGISTRY_IP/cassandra

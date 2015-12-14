@@ -24,7 +24,7 @@ for server in $SWARM_MEMBERS; do
 done
 
 # Sed the servers to the config file
-sed -i '' 's/- targets.*/- targets: '$SERVERS'/g' prometheus.yml
+sed -i '' 's/- targets.*/- targets: '$SERVERS'/g' $(dirname ${BASH_SOURCE[0]})/prometheus.yml
 
 if ! docker inspect prometheus &> /dev/null; then
   printf "\e[33m*** \e[32mStarting Prometheus \e[33m***\e[0m\n"
@@ -33,15 +33,15 @@ if ! docker inspect prometheus &> /dev/null; then
   # docker $(docker-machine config infra) run -d -p 9090:9090 --name prometheus -v $PWD/prometheus.yml:/etc/prometheus/prometheus.yml -v $PWD/alert.rules:/etc/prometheus/alert.rules prom/prometheus -config.file=/etc/prometheus/prometheus.yml -alertmanager.url=http://$(docker-machine ip infra):9093
   if [ $AWS_ACCESS_KEY_ID ]; then
     # Copy the configuration file over
-    docker-machine scp $PWD/prometheus.yml infra-aws:/tmp/prometheus.yml
+    docker-machine scp $(dirname ${BASH_SOURCE[0]})/prometheus.yml infra-aws:/tmp/prometheus.yml
     docker run -d -p 9090:9090 --name prometheus -v /tmp/prometheus.yml:/etc/prometheus/prometheus.yml $REGISTRY/prometheus
   else
-    docker run -d -p 9090:9090 --name prometheus -v $PWD/prometheus.yml:/etc/prometheus/prometheus.yml $REGISTRY/prometheus
+    docker run -d -p 9090:9090 --name prometheus -v $(cd $(dirname ${BASH_SOURCE[0]}); pwd)/prometheus.yml:/etc/prometheus/prometheus.yml $REGISTRY/prometheus
   fi
 else
   printf "\e[33m*** \e[32mPrometheus already running on infra, sending sighup to reload config \e[33m***\e[0m\n"
   if [ $AWS_ACCESS_KEY_ID ]; then
-    docker-machine scp $PWD/prometheus.yml infra-aws:/tmp/prometheus.yml
+    docker-machine scp $(dirname ${BASH_SOURCE[0]})/prometheus.yml infra-aws:/tmp/prometheus.yml
   fi
   docker exec prometheus kill -SIGHUP 1
 fi

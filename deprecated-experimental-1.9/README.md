@@ -1,3 +1,7 @@
+# Note
+
+As Docker 1.9 was released, this became became deprecated. The 1.10 experimental has more to do with security than networking.
+
 # Docker 1.9-experimental
 
 In this folder are a few files which contain commands I have used when trying to get the new overlay networking play along with Registrator and Consul. So far these experiments haven't been successful, I'll continue when the tools mature.

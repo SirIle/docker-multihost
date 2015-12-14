@@ -26,6 +26,6 @@ scrape_configs:
 
     target_groups:
       # The following servers are inserted by the addMonitoring script
-      - targets: ['192.168.99.102:8080','192.168.99.103:8080']
+      - targets: ['192.168.99.112:8080','192.168.99.110:8080','192.168.99.111:8080']
         labels:
           group: 'development'

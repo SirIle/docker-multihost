@@ -1,0 +1,43 @@
+# With new 1.9 setting up normal overlay network on Swarm.
+# Using docker-machine version 0.5.2-dev ( 36f6173 ), with the PR #1891
+
+# Set-up infra
+docker-machine create -d amazonec2 infra-aws
+docker $(docker-machine config infra-aws) run -d -p 8500:8500 -h consul progrium/consul -server -bootstrap
+
+# Using docker-machine version 0.5.2-dev ( 36f6173 )
+
+# Create swarm-master (hvm), find AMI from http://cloud-images.ubuntu.com/releases/15.10/release/
+docker-machine create -d amazonec2 --swarm --swarm-master --swarm-discovery="consul://$(docker-machine inspect --format '{{.Driver.PrivateIPAddress}}' infra-aws):8500" --engine-opt="cluster-store=consul://$(docker-machine inspect --format '{{.Driver.PrivateIPAddress}}' infra-aws):8500" --amazonec2-ami=ami-fe001292 --engine-opt="cluster-advertise=eth0:2376" swarm-0-aws
+docker $(docker-machine config swarm-0-aws) network create --driver overlay overlay-1
+
+# Create swarm-1 (hvm)
+docker-machine create -d amazonec2 --swarm --swarm-discovery="consul://$(docker-machine inspect --format '{{.Driver.PrivateIPAddress}}' infra-aws):8500" --engine-opt="cluster-store=consul://$(docker-machine inspect --format '{{.Driver.PrivateIPAddress}}' infra-aws):8500" --amazonec2-ami=ami-fe001292 --engine-opt="cluster-advertise=eth0:2376" swarm-1-aws
+
+# Test pinging between containers
+docker $(docker-machine config swarm-0-aws) run -it --rm --name test1 --net=overlay-1 alpine /bin/sh
+docker $(docker-machine config swarm-1-aws) run -it --rm --name test2 --net=overlay-1 alpine /bin/sh
+
+# Start Consul and registrators (need to have PR #293 merged)
+docker $(docker-machine config swarm-0-aws) run -d -p "8500:8500" --net=overlay-1 --name consul -h consul progrium/consul -server -bootstrap
+docker $(docker-machine config swarm-0-aws) run -d -v /var/run/docker.sock:/tmp/docker.sock --net=overlay-1 -h registrator --name registrator-swarm-0-aws kidibox/registrator -internal consul://consul:8500
+docker $(docker-machine config swarm-1-aws) run -d -v /var/run/docker.sock:/tmp/docker.sock --net=overlay-1 -h registrator --name registrator-swarm-1-aws kidibox/registrator -internal consul://consul:8500
+
+# Start HAProxy
+docker $(docker-machine config --swarm swarm-0-aws) run -d --name=rest -p 80:80 -p 1936:1936 --net=overlay-1 sirile/haproxy -consul=consul:8500
+
+# Start node-image-test services
+docker $(docker-machine config --swarm swarm-0-aws) run -d -e SERVICE_NAME=hello/v1 --net=overlay-1 -e SERVICE_TAGS=rest --dns 172.17.42.1 sirile/node-image-test
+
+# Start go-image-test services
+docker $(docker-machine config --swarm swarm-0-aws) run -d -e SERVICE_NAME=hello/v2 --net=overlay-1 -e SERVICE_TAGS=rest --dns 172.17.42.1 sirile/node-image-test
+
+# Start gohello services
+docker $(docker-machine config --swarm swarm-0-aws) run -d -e SERVICE_NAME=hello/v1 --net=overlay-1 -e SERVICE_TAGS=rest --dns 172.17.42.1 sirile/gohello
+
+# Print the address of the endpoint
+printf "\e[33m*** \e[32mService available at \e[31mhttp://$(docker inspect --format='{{.Node.IP}}' rest)/hello/v1 \e[33m***\e[0m\n"
+
+# Start a few Cassandra images
+docker $(docker-machine config --swarm swarm-0-aws) run -d --name cass1 -h cass1 --net=overlay-1 sirile/minicassandra cass1
+docker $(docker-machine config --swarm swarm-0-aws) run -d --name cass2 -h cass2 --net=overlay-1 sirile/minicassandra cass1

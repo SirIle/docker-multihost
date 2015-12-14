@@ -21,7 +21,7 @@ fi
 # Start Consul if not already running
 if ! docker inspect consul &> /dev/null; then
   printf "\e[33m*** \e[32mStarting consul container \e[33m***\e[0m\n"
-  docker run -d -p 172.17.42.1:53:53 -p 172.17.42.1:53:53/udp -p 8300:8300 -p 8301:8301 -p 8301:8301/udp -p 8302:8302 -p 8302:8302/udp -p 8400:8400 -p 8500:8500 --name consul $REGISTRY/consul -server -bootstrap-expect 1 -advertise $ADVERTISE_IP
+  docker run -d -p 8500:8500 --name consul $REGISTRY/consul -server -bootstrap-expect 1
 else
   printf "\e[33m*** \e[32mConsul already running \e[33m***\e[0m\n"
 fi
