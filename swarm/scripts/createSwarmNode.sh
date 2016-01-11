@@ -12,7 +12,7 @@ if [ $AWS_ACCESS_KEY_ID ]; then
     NAME='swarm-0-aws'
     if ! docker-machine inspect $NAME &> /dev/null; then
       printf "\e[33m*** \e[32mCreating swarm master with the name '$NAME' to AWS \e[33m***\e[0m\n"
-      docker-machine create -d amazonec2 --swarm --swarm-master --swarm-discovery consul://$CONSUL:8500 --engine-opt="cluster-store=consul://$CONSUL:8500" --amazonec2-ami=ami-fe001292 --engine-opt="cluster-advertise=eth0:2376" $OPTIONS --swarm-image $REGISTRY/swarm --engine-insecure-registry=$REGISTRY $NAME
+      docker-machine create -d amazonec2 --swarm --swarm-master --swarm-discovery consul://$CONSUL:8500 --swarm-image $REGISTRY/swarm --engine-opt="cluster-store=consul://$CONSUL:8500" --amazonec2-ami=ami-fe001292 --engine-opt="cluster-advertise=eth0:2376" $OPTIONS --swarm-image $REGISTRY/swarm --engine-insecure-registry=$REGISTRY $NAME
       printf "\e[33m*** \e[32mCreating network overlay \e[33m***\e[0m\n"
       docker $(docker-machine config $NAME) network create --driver overlay overlay
       printf "\e[33m*** \e[32mStarting master consul \e[33m***\e[0m\n"
@@ -27,7 +27,7 @@ if [ $AWS_ACCESS_KEY_ID ]; then
     OVERLAY_CONSUL=$(docker $(docker-machine config swarm-0-aws) inspect -f '{{(index .NetworkSettings.Networks "overlay").IPAddress}}' swarm-0-aws-consul)
     if ! docker-machine inspect $NAME &> /dev/null; then
       printf "\e[33m*** \e[32mCreating swarm node with the name '$NAME' to AWS, label: $2 \e[33m***\e[0m\n"
-      docker-machine create --driver amazonec2 --swarm --swarm-discovery consul://$CONSUL:8500 --engine-opt="cluster-store=consul://$CONSUL:8500" --amazonec2-ami=ami-fe001292 --engine-opt="cluster-advertise=eth0:2376" $OPTIONS --engine-insecure-registry=$REGISTRY $NAME
+      docker-machine create --driver amazonec2 --swarm --swarm-discovery consul://$CONSUL:8500 --swarm-image $REGISTRY/swarm --engine-opt="cluster-store=consul://$CONSUL:8500" --amazonec2-ami=ami-fe001292 --engine-opt="cluster-advertise=eth0:2376" $OPTIONS --engine-insecure-registry=$REGISTRY $NAME
       printf "\e[33m*** \e[32mStarting slave consul \e[33m***\e[0m\n"
       docker $(docker-machine config $NAME) run -d -p 172.17.0.1:53:53 -p 172.17.0.1:53:53/udp -p 8500:8500 --name $NAME-consul --net overlay $REGISTRY/consul -join $OVERLAY_CONSUL
     else
@@ -58,7 +58,7 @@ else
     OVERLAY_CONSUL=$(docker $(docker-machine config swarm-0) inspect -f '{{(index .NetworkSettings.Networks "overlay").IPAddress}}' swarm-0-consul)
     if ! docker-machine inspect $NAME &> /dev/null; then
       printf "\e[33m*** \e[32mCreating swarm node with the name '$NAME' locally, label: $2 \e[33m***\e[0m\n"
-      docker-machine create --driver virtualbox --swarm --swarm-discovery consul://$CONSUL:8500 --engine-opt="cluster-store=consul://$CONSUL:8500" --engine-opt="cluster-advertise=eth1:2376" $OPTIONS --engine-insecure-registry=$REGISTRY $NAME
+      docker-machine create --driver virtualbox --swarm --swarm-discovery consul://$CONSUL:8500 --swarm-image $REGISTRY/swarm --engine-opt="cluster-store=consul://$CONSUL:8500" --engine-opt="cluster-advertise=eth1:2376" $OPTIONS --engine-insecure-registry=$REGISTRY $NAME
       printf "\e[33m*** \e[32mStarting slave consul \e[33m***\e[0m\n"
       docker $(docker-machine config $NAME) run -d -p 172.17.0.1:53:53 -p 172.17.0.1:53:53/udp -p 8500:8500 --name $NAME-consul --net overlay $REGISTRY/consul -join $OVERLAY_CONSUL
     else
