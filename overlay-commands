@@ -1,17 +1,17 @@
-With new 1.9 setting up normal overlay network on Swarm.
+# With new 1.10 setting up normal overlay network on Swarm
 
 # Set-up infra
 docker-machine create -d virtualbox infra
 docker $(docker-machine config infra) run -d -p "8500:8500" -h consul progrium/consul -server -bootstrap
 
 # Create swarm-master
-docker-machine create -d virtualbox --swarm --swarm-image="swarm" --swarm-master --swarm-discovery="consul://$(docker-machine ip infra):8500" --engine-opt="cluster-store=consul://$(docker-machine ip infra):8500" --engine-opt="cluster-advertise=eth1:2376" swarm-0
+docker-machine create -d virtualbox --swarm --swarm-master --swarm-discovery="consul://$(docker-machine ip infra):8500" --engine-opt="cluster-store=consul://$(docker-machine ip infra):8500" --engine-opt="cluster-advertise=eth1:2376" swarm-0
 docker $(docker-machine config swarm-0) network create --driver overlay overlay-1
 docker $(docker-machine config swarm-0) run -d -p "8500:8500" --net=overlay-1 --name consul -h consul progrium/consul -server -bootstrap
 docker $(docker-machine config swarm-0) run -d -v /var/run/docker.sock:/tmp/docker.sock --net=overlay-1 -h registrator --name registrator-swarm-0 kidibox/registrator -internal consul://consul:8500
 
 # Create swarm-1
-docker-machine create -d virtualbox --swarm --swarm-image="swarm" --swarm-discovery="consul://$(docker-machine ip infra):8500" --engine-opt="cluster-store=consul://$(docker-machine ip infra):8500" --engine-opt="cluster-advertise=eth1:2376" swarm-1
+docker-machine create -d virtualbox --swarm --swarm-discovery="consul://$(docker-machine ip infra):8500" --engine-opt="cluster-store=consul://$(docker-machine ip infra):8500" --engine-opt="cluster-advertise=eth1:2376" swarm-1
 docker $(docker-machine config swarm-1) run -d -v /var/run/docker.sock:/tmp/docker.sock --net=overlay-1 -h registrator --name registrator-swarm-1 kidibox/registrator -internal consul://consul:8500
 
 # Start HAProxy
