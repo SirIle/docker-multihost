@@ -18,7 +18,7 @@ fi
 NAME=$REGISTRY/$(basename $2)
 printf "\e[33m*** \e[32mStarting image $NAME with the name $1 \e[33m***\e[0m\n"
 docker run -d -e SERVICE_NAME=$1 -e SERVICE_TAGS=rest --dns 172.17.0.1 --net overlay $NAME
-if [ $? == 1 ]; then
+if [ $? != 0 ]; then
   printf "\e[33m*** \e[32mImage not found, trying to pull and push to private registry \e[33m***\e[0m\n"
   scripts/pullService.sh $2
   docker run -d -e SERVICE_NAME=$1 -e SERVICE_TAGS=rest --dns 172.17.0.1 --net overlay $NAME

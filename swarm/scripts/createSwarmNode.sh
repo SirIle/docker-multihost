@@ -70,5 +70,5 @@ else
 fi
 eval $(docker-machine env $NAME)
 printf "\e[33m*** \e[32mStarting registrator \e[33m***\e[0m\n"
-docker run -d -v /var/run/docker.sock:/tmp/docker.sock -h registrator --name $NAME-registrator --net overlay $REGISTRY/registrator -internal consul://$NAME-consul:8500
+docker run -d -v //var/run/docker.sock:/tmp/docker.sock -h registrator --name $NAME-registrator --net overlay $REGISTRY/registrator -internal consul://$NAME-consul:8500
 printf "\e[33m*** \e[32mStarted a new node with IP \e[31m$(docker-machine ip $NAME) \e[33m***\e[0m\n"

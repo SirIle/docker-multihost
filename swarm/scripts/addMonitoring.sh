@@ -17,14 +17,14 @@ printf "\e[33m*** \e[32mServers in the swarm: $SWARM_MEMBERS \e[33m***\e[0m\n"
 for server in $SWARM_MEMBERS; do
   if ! docker $(docker-machine config $server) inspect cadvisor &> /dev/null; then
     printf "\e[33m*** \e[32mStarting cadvisor on $server \e[33m***\e[0m\n"
-    docker $(docker-machine config $server)  run --name cadvisor --volume=/:/rootfs:ro --volume=/var/run:/var/run:rw --volume=/sys:/sys:ro --volume=/var/lib/docker/:/var/lib/docker:ro --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro --publish=8080:8080 --detach=true --name=cadvisor $REGISTRY/cadvisor
+    docker $(docker-machine config $server)  run --name cadvisor --volume=//:/rootfs:ro --volume=//var/run:/var/run:rw --volume=//sys:/sys:ro --volume=//var/lib/docker/:/var/lib/docker:ro --volume=//sys/fs/cgroup:/sys/fs/cgroup:ro --publish=8080:8080 --detach=true --name=cadvisor $REGISTRY/cadvisor
   else
     printf "\e[33m*** \e[32mcadvisor already running on $server \e[33m***\e[0m\n"
   fi
 done
 
 # Sed the servers to the config file
-sed -i '' 's/- targets.*/- targets: '$SERVERS'/g' $(dirname ${BASH_SOURCE[0]})/prometheus.yml
+sed -i 's/- targets.*/- targets: '$SERVERS'/g' $(dirname ${BASH_SOURCE[0]})/prometheus.yml
 
 if ! docker inspect prometheus &> /dev/null; then
   printf "\e[33m*** \e[32mStarting Prometheus \e[33m***\e[0m\n"
@@ -36,7 +36,7 @@ if ! docker inspect prometheus &> /dev/null; then
     docker-machine scp $(dirname ${BASH_SOURCE[0]})/prometheus.yml infra-aws:/tmp/prometheus.yml
     docker run -d -p 9090:9090 --name prometheus -v /tmp/prometheus.yml:/etc/prometheus/prometheus.yml $REGISTRY/prometheus
   else
-    docker run -d -p 9090:9090 --name prometheus -v $(cd $(dirname ${BASH_SOURCE[0]}); pwd)/prometheus.yml:/etc/prometheus/prometheus.yml $REGISTRY/prometheus
+    docker run -d -p 9090:9090 --name prometheus -v /$(cd $(dirname ${BASH_SOURCE[0]}); pwd)/prometheus.yml:/etc/prometheus/prometheus.yml $REGISTRY/prometheus
   fi
 else
   printf "\e[33m*** \e[32mPrometheus already running on infra, sending sighup to reload config \e[33m***\e[0m\n"

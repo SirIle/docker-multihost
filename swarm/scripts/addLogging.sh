@@ -28,7 +28,7 @@ printf "\e[33m*** \e[32mServers in the swarm: $SWARM_MEMBERS \e[33m***\e[0m\n"
 for server in $SWARM_MEMBERS; do
   if ! docker $(docker-machine config $server) inspect logspout &> /dev/null; then
     printf "\e[33m*** \e[32mStarting logspout on $server \e[33m***\e[0m\n"
-    docker $(docker-machine config $server) run -d --name logspout -h logspout -p 8100:8000 -v /var/run/docker.sock:/tmp/docker.sock $REGISTRY/logspout $LOGSTASH
+    docker $(docker-machine config $server) run -d --name logspout -h logspout -p 8100:8000 -v //var/run/docker.sock:/tmp/docker.sock $REGISTRY/logspout $LOGSTASH
   else
     printf "\e[33m*** \e[32mLogspout already running on $server \e[33m***\e[0m\n"
   fi
