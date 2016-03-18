@@ -23,8 +23,9 @@ for server in $SWARM_MEMBERS; do
   fi
 done
 
-# Sed the servers to the config file
-sed -i 's/- targets.*/- targets: '$SERVERS'/g' $(dirname ${BASH_SOURCE[0]})/prometheus.yml
+# Sed the servers to the config file, complicated so it would work on Mac and Win10 git bash
+sed -i.bak 's/- targets.*/- targets: '$SERVERS'/g' $(dirname ${BASH_SOURCE[0]})/prometheus.yml
+rm $(dirname ${BASH_SOURCE[0]})/prometheus.yml.bak
 
 if ! docker inspect prometheus &> /dev/null; then
   printf "\e[33m*** \e[32mStarting Prometheus \e[33m***\e[0m\n"
