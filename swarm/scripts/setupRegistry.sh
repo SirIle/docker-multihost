@@ -4,12 +4,12 @@ if [ $AWS_ACCESS_KEY_ID ]; then
   if ! docker-machine inspect registry-aws &> /dev/null; then
     printf "\e[33m*** \e[32mCreating private registry server on AWS \e[33m***\e[0m\n"
     docker-machine create -d amazonec2 registry-aws
-    REGISTRY_IP=$(docker-machine inspect --format='{{.Driver.PrivateIPAddress}}' registry-aws):5000
+    REGISTRY_IP=$(docker-machine inspect --format='{{.Driver.IPAddress}}' registry-aws):5000
     # Modify the registry to be insecure
     docker-machine ssh registry-aws "echo $'DOCKER_OPTS=\"\$DOCKER_OPTS --insecure-registry='$REGISTRY_IP'\"' | sudo tee -a /etc/default/docker && sudo service docker restart"
     docker $(docker-machine config registry-aws) run -d -p 5000:5000 --restart=always --name registry registry:2
   else
-    REGISTRY_IP=$(docker-machine inspect --format='{{.Driver.PrivateIPAddress}}' registry-aws):5000
+    REGISTRY_IP=$(docker-machine inspect --format='{{.Driver.IPAddress}}' registry-aws):5000
   fi
   eval $(docker-machine env registry-aws)
 else
